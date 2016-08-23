@@ -149,7 +149,7 @@ func (self *RotateWriter) updateCurFileNo() error {
 func (self *RotateWriter) renameFile(src string, dst string) error {
 	err := os.Remove(dst)
 	if err != nil {
-		return err
+		//return err
 	}
 
 	err = os.Rename(src, dst)
@@ -192,6 +192,8 @@ func (self *RotateWriter) shiftFile() error {
 
 	self.updateCurFileNo()
 
+	self.closeFile()
+	
 	src := path
 	dst := fmt.Sprintf("%s.%d", src, self.curFileNo)
 
@@ -201,7 +203,7 @@ func (self *RotateWriter) shiftFile() error {
 
 	self.removeFile(rm)
 
-	self.closeFile()
+	//self.closeFile()
 	return self.openFile()
 }
 
@@ -261,7 +263,23 @@ func (self *RotateWriter) SetDir(dir string) {
 	self.dir = dir
 }
 
+func (self *RotateWriter) Init() error {
+	self.mu.Lock()
+	defer self.mu.Unlock()
+	
+	self.closeFile()
+	err := self.initCurFileNo()
+	if err != nil {
+		return err
+	}
+	
+	return self.openFile()
+}
+
 func (self *RotateWriter) Write(p []byte) (n int, err error) {
+	self.mu.Lock()
+	defer self.mu.Unlock()
+	
 	err = self.shiftFile()
 	if err != nil {
 		return 0, err
@@ -273,5 +291,5 @@ func (self *RotateWriter) Write(p []byte) (n int, err error) {
 	}
 
 	self.curFileSize += uint64(n)
-	return n, err
+	return n, nil
 }
