@@ -3,7 +3,6 @@ package log
 import (
 	"fmt"
 	"github.com/boringding/beekeeper/file"
-	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -20,7 +19,6 @@ type RotateWriter struct {
 	curFileNo      int
 	curFileSize    uint64
 	file           *os.File
-	Writer         io.Writer
 }
 
 func (self *RotateWriter) getPathFileName() (string, string) {
@@ -129,50 +127,31 @@ func (self *RotateWriter) initCurFileNo() error {
 
 	var err error
 	self.curFileNo, err = self.getMaxFileNo(fileName)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 func (self *RotateWriter) updateCurFileNo() error {
 	var err error
 	self.curFileNo, err = self.getMaxFileNo(self.fileName)
-	if err != nil {
-		return err
-	}
 
-	return nil
-}
-
-func (self *RotateWriter) renameFile(src string, dst string) error {
-	err := os.Remove(dst)
-	if err != nil {
-		//return err
-	}
-
-	err = os.Rename(src, dst)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (self *RotateWriter) removeFile(path string) error {
-	return os.Remove(path)
+	return err
 }
 
 func (self *RotateWriter) shiftFile() error {
 	fd := int(self.file.Fd())
 
-	file.LockFile(fd)
+	err := file.LockFile(fd)
 	defer file.UnlockFile(fd)
+
+	if err != nil {
+		self.closeFile()
+		return self.openFile()
+	}
 
 	path := self.dir + self.fileName
 
-	err := file.CheckFile(path, self.file)
+	err = file.CheckFile(path, self.file)
 	if err != nil {
 		self.closeFile()
 		return self.openFile()
@@ -193,17 +172,17 @@ func (self *RotateWriter) shiftFile() error {
 	self.updateCurFileNo()
 
 	self.closeFile()
-	
+
 	src := path
 	dst := fmt.Sprintf("%s.%d", src, self.curFileNo)
 
-	self.renameFile(src, dst)
+	//not care about error
+	file.RenameFile(src, dst)
 
 	rm := fmt.Sprintf("%s.%d", src, self.curFileNo-self.maxFileCnt)
 
-	self.removeFile(rm)
+	file.RemoveFile(rm)
 
-	//self.closeFile()
 	return self.openFile()
 }
 
@@ -266,30 +245,30 @@ func (self *RotateWriter) SetDir(dir string) {
 func (self *RotateWriter) Init() error {
 	self.mu.Lock()
 	defer self.mu.Unlock()
-	
+
 	self.closeFile()
 	err := self.initCurFileNo()
 	if err != nil {
 		return err
 	}
-	
+
 	return self.openFile()
 }
 
 func (self *RotateWriter) Write(p []byte) (n int, err error) {
 	self.mu.Lock()
 	defer self.mu.Unlock()
-	
+
 	err = self.shiftFile()
 	if err != nil {
-		return 0, err
+		return
 	}
 
 	n, err = self.file.Write(p)
 	if err != nil {
-		return 0, err
+		return
 	}
 
 	self.curFileSize += uint64(n)
-	return n, nil
+	return
 }
