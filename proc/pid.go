@@ -4,21 +4,18 @@ import (
 	"os"
 )
 
-var pid = -1
-var ppid = -1
+var pid = 0
+var ppid = 0
+
+func init() {
+	pid = os.Getpid()
+	ppid = os.Getppid()
+}
 
 func GetSelfPid() int {
-	if pid >= 0 {
-		return pid
-	} else {
-		return os.Getpid()
-	}
+	return pid
 }
 
 func GetParentPid() int {
-	if ppid >= 0 {
-		return ppid
-	} else {
-		return os.Getppid()
-	}
+	return ppid
 }

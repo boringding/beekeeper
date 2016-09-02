@@ -2,11 +2,12 @@ package log
 
 import (
 	"fmt"
-	"github.com/boringding/beekeeper/conf"
-	"github.com/boringding/beekeeper/proc"
 	"io"
 	"log"
 	"sync"
+
+	"github.com/boringding/beekeeper/conf"
+	"github.com/boringding/beekeeper/proc"
 )
 
 const (

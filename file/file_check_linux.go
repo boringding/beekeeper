@@ -6,8 +6,6 @@ import (
 	"reflect"
 )
 
-var ErrNotSameFile = errors.New("not the same file")
-
 func CheckFile(path string, file *os.File) error {
 	pathFileInfo, err := os.Stat(path)
 	if err != nil {
@@ -27,7 +25,7 @@ func CheckFile(path string, file *os.File) error {
 	fileInode := reflect.ValueOf(fileStat).Elem().FieldByName("Ino").Field(0).Uint()
 
 	if pathInode != fileInode {
-		return ErrNotSameFile
+		return errors.New("not the same file")
 	}
 
 	return nil

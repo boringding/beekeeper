@@ -1,11 +1,12 @@
 package grace
 
 import (
-	"github.com/boringding/beekeeper/proc"
 	"net"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/boringding/beekeeper/proc"
 )
 
 type gracefulListener struct {
@@ -17,23 +18,12 @@ type gracefulListener struct {
 	srv              *GracefulSrv
 }
 
-func (self *gracefulListener) Init() error {
+func (self *gracefulListener) init() error {
 	fdStr := proc.GetEnv(self.name)
 	var err error
 
 	if len(fdStr) <= 0 {
 		self.Listener, err = net.Listen("tcp", self.addr)
-		if err != nil {
-			return err
-		}
-
-		file, err := self.Listener.(*net.TCPListener).File()
-		if err != nil {
-			return err
-		}
-
-		fdStr = strconv.Itoa(int(file.Fd()))
-		err = proc.SetEnv(self.name, fdStr)
 		if err != nil {
 			return err
 		}
@@ -73,8 +63,9 @@ func (self *gracefulListener) Accept() (net.Conn, error) {
 }
 
 func (self *gracefulListener) Close() error {
-	err := self.Listener.Close()
-	err = proc.SetEnv(self.name, "")
+	return self.Listener.Close()
+}
 
-	return err
+func (self *gracefulListener) file() (*os.File, error) {
+	return self.Listener.(*net.TCPListener).File()
 }

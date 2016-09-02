@@ -2,11 +2,12 @@ package log
 
 import (
 	"fmt"
-	"github.com/boringding/beekeeper/file"
 	"os"
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/boringding/beekeeper/file"
 )
 
 type RotateWriter struct {

@@ -11,7 +11,9 @@ type gracefulConn struct {
 
 func (self *gracefulConn) Close() error {
 	err := self.Conn.Close()
-	self.srv.waitGroup.Done()
+	if err == nil {
+		self.srv.waitGroup.Done()
+	}
 
 	return err
 }
