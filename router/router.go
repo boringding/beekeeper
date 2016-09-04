@@ -6,41 +6,90 @@ import (
 	"sync"
 )
 
-type Router struct {
-	mu       sync.RWMutex
-	mappings map[string]http.Handler
+const (
+	MethodGet = 1 << iota
+	MethodHead
+	MethodPost
+	MethodPut
+	MethodPatch
+	MethodDelete
+	MethodConnect
+	MethodOptions
+	MethodTrace
+)
+
+var MethodMap = map[string]int{
+	http.MethodGet:     MethodGet,
+	http.MethodHead:    MethodHead,
+	http.MethodPost:    MethodPost,
+	http.MethodPut:     MethodPut,
+	http.MethodPatch:   MethodPatch,
+	http.MethodDelete:  MethodDelete,
+	http.MethodConnect: MethodConnect,
+	http.MethodOptions: MethodOptions,
+	http.MethodTrace:   MethodTrace,
 }
 
-var DefaultRouter = &Router{
-	mappings: map[string]http.Handler{},
+type Route struct {
+	http.Handler
+	Method int
+	Path   string
 }
 
-func (self *Router) AddMapping(pattern string, handler http.Handler) error {
+type router struct {
+	mu     sync.RWMutex
+	routes map[string]map[int]Route
+}
+
+func newRouter() *router {
+	return &router{
+		routes: map[string]map[int]Route{},
+	}
+}
+
+var DefaultRouter = newRouter()
+
+func (self *router) AddRoute(route Route) error {
 	self.mu.Lock()
 	defer self.mu.Unlock()
 
-	if len(pattern) <= 0 {
-		return errors.New("empty pattern")
+	pathOk := false
+	if _, pathOk = self.routes[route.Path]; pathOk {
+		if _, methodOk := self.routes[route.Path][route.Method]; methodOk {
+			return errors.New("route already exists")
+		}
 	}
 
-	if _, ok := self.mappings[pattern]; ok {
-		return errors.New("mapping already exists")
+	if pathOk == false {
+		self.routes[route.Path] = map[int]Route{}
 	}
 
-	self.mappings[pattern] = handler
+	self.routes[route.Path][route.Method] = route
 
 	return nil
 }
 
-func (self *Router) ServeHTTP(resWriter http.ResponseWriter, req *http.Request) {
-	pattern := req.URL.Path
-
+func (self *router) FindRoute(method int, path string) (Route, bool) {
 	self.mu.RLock()
 	defer self.mu.RUnlock()
 
-	if v, ok := self.mappings[pattern]; ok {
-		v.ServeHTTP(resWriter, req)
-	} else {
+	var route Route
 
+	if _, ok := self.routes[path]; ok {
+		for _, v := range self.routes[path] {
+			if v.Method&method > 0 {
+				return v, true
+			}
+		}
+	}
+
+	return route, false
+}
+
+func (self *router) ServeHTTP(resWriter http.ResponseWriter, req *http.Request) {
+	if v, ok := self.FindRoute(MethodMap[req.Method], req.URL.Path); ok {
+		v.Handler.ServeHTTP(resWriter, req)
+	} else {
+		http.NotFound(resWriter, req)
 	}
 }
