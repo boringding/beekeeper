@@ -2,34 +2,69 @@ package main
 
 import (
 	"fmt"
+	"os"
 
+	"github.com/boringding/beekeeper"
 	"github.com/boringding/beekeeper/conf"
 	"github.com/boringding/beekeeper/grace"
-	"github.com/boringding/beekeeper/router"
-	_ "github.com/boringding/beekeeper/skeleton/handlers"
+	"github.com/boringding/beekeeper/proc"
+	//_ "github.com/boringding/beekeeper/skeleton/handlers"
 )
 
-func main() {
-	srvConf := conf.SrvConf{
-		Name:                   "FUCK",
-		Host:                   "127.0.0.1",
-		Port:                   8900,
-		KeepAlive:              true,
-		KeepAliveSeconds:       60,
-		ReadTimeoutSeconds:     30,
-		WriteTimeoutSeconds:    30,
-		MaxHeaderBytes:         1000,
-		ShutdownTimeoutSeconds: 30,
-	}
+type CmdConf struct {
+	A uint    `usage:"parameter a"`
+	B uint32  `usage:"parameter b"`
+	C string  `usage:"parameter c"`
+	D float64 `usage:"parameter d"`
+	E bool    `usage:"parameter e"`
+	F int64   `usage:"parameter f"`
+	G uint64  `usage:"parameter g"`
+	H int32   `usage:"parameter h"`
+	I int     `usage:"parameter i"`
+}
 
-	srv, err := grace.NewGracefulSrv(srvConf)
+func main() {
+	err := proc.DumpSelfPid("./beekeeper.pid")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	err = srv.Serve(grace.SrvTypeHttp, router.DefaultRouter)
+	beekeeper.InitConf(os.Args[1], "../conf/")
+
+	var cmdConf CmdConf
+	var frameworkConf conf.FrameworkConf
+
+	beekeeper.AddCmdConfItem(&cmdConf)
+	beekeeper.AddConfItem("framework", &frameworkConf)
+
+	err = beekeeper.ParseConf()
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
+
+	err = beekeeper.InitLog(frameworkConf.LogConf)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	beekeeper.LogInfo("log init finished")
+
+	srv, err := grace.NewGracefulSrv(frameworkConf.SrvConf)
+	if err != nil {
+		beekeeper.LogFatal("create graceful server failed")
+		return
+	}
+
+	beekeeper.LogInfo("server starting...")
+
+	err = srv.Serve(grace.SrvTypeFcgi, beekeeper.GetRouter())
+	if err != nil {
+		beekeeper.LogFatal("start serve failed")
+		return
+	}
+
+	beekeeper.LogInfo("server finished")
 }

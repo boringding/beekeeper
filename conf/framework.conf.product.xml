@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FrameworkConf>
+	<LogConf>
+		<MaxFileCnt>3</MaxFileCnt>
+		<MaxFileSize>1024</MaxFileSize>
+		<FileNamePrefix>beekeeper</FileNamePrefix>
+		<Dir>../log</Dir>
+		<Lvl>ALL</Lvl>
+	</LogConf>
+	
+	<SrvConf>
+		<Name>server name</Name>
+		<Host>127.0.0.1</Host>
+		<Port>8900</Port>
+		<KeepAlive>true</KeepAlive>
+		<KeepAliveSeconds>60</KeepAliveSeconds>
+		<ReadTimeoutSeconds>30</ReadTimeoutSeconds>
+		<WriteTimeoutSeconds>30</WriteTimeoutSeconds>
+		<MaxHeaderBytes>1000</MaxHeaderBytes>
+		<ShutdownTimeoutSeconds>30</ShutdownTimeoutSeconds>
+	</SrvConf>
+</FrameworkConf>

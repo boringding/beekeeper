@@ -22,17 +22,26 @@ const (
 
 var LogLvls = []string{"ALL", "DEBUG", "INFO", "WARN", "ERR", "FATAL", "NONE"}
 
-type Log struct {
-	mu           sync.Mutex
+type RotateLog struct {
+	mu           sync.RWMutex
 	lvl          int
 	rotateWriter RotateWriter
 	logger       log.Logger
 }
 
-func (self *Log) Init(conf conf.LogConf) error {
-	self.mu.Lock()
-	self.lvl = conf.Lvl
-	self.mu.Unlock()
+func NewRotateLog() *RotateLog {
+	return &RotateLog{
+		lvl: LogAll,
+	}
+}
+
+func (self *RotateLog) Init(conf conf.LogConf) error {
+	for i, v := range LogLvls {
+		if v == conf.Lvl {
+			self.lvl = i
+			break
+		}
+	}
 
 	self.rotateWriter.SetMaxFileCnt(conf.MaxFileCnt)
 	self.rotateWriter.SetMaxFileSize(conf.MaxFileSize)
@@ -51,11 +60,30 @@ func (self *Log) Init(conf conf.LogConf) error {
 	return nil
 }
 
-func (self *Log) SetWriter(writer io.Writer) {
+func (self *RotateLog) GetLvl() int {
+	self.mu.RLock()
+	defer self.mu.RUnlock()
+
+	return self.lvl
+}
+
+func (self *RotateLog) SetLvl(lvl int) {
+	self.mu.Lock()
+	defer self.mu.Unlock()
+
+	if lvl < LogAll || lvl > LogNone {
+		return
+	}
+
+	self.lvl = lvl
+}
+
+func (self *RotateLog) SetWriter(writer io.Writer) {
 	self.logger.SetOutput(writer)
 }
 
-func (self *Log) Log(lvl int, format string, v ...interface{}) error {
+//call this function with a callDepth=2 in your code
+func (self *RotateLog) Log(lvl int, callDepth int, format string, v ...interface{}) error {
 	if lvl < self.lvl {
 		return nil
 	}
@@ -64,5 +92,25 @@ func (self *Log) Log(lvl int, format string, v ...interface{}) error {
 	content := fmt.Sprintf(format, v...)
 	output := lvlStr + content
 
-	return self.logger.Output(2, fmt.Sprintln(output))
+	return self.logger.Output(callDepth, fmt.Sprintln(output))
+}
+
+func (self *RotateLog) Debug(format string, v ...interface{}) error {
+	return self.Log(LogDebug, 3, format, v...)
+}
+
+func (self *RotateLog) Info(format string, v ...interface{}) error {
+	return self.Log(LogInfo, 3, format, v...)
+}
+
+func (self *RotateLog) Warn(format string, v ...interface{}) error {
+	return self.Log(LogWarn, 3, format, v...)
+}
+
+func (self *RotateLog) Err(format string, v ...interface{}) error {
+	return self.Log(LogErr, 3, format, v...)
+}
+
+func (self *RotateLog) Fatal(format string, v ...interface{}) error {
+	return self.Log(LogFatal, 3, format, v...)
 }

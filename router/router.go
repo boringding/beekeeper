@@ -36,20 +36,18 @@ type Route struct {
 	Path   string
 }
 
-type router struct {
+type Router struct {
 	mu     sync.RWMutex
 	routes map[string]map[int]Route
 }
 
-func newRouter() *router {
-	return &router{
+func NewRouter() *Router {
+	return &Router{
 		routes: map[string]map[int]Route{},
 	}
 }
 
-var DefaultRouter = newRouter()
-
-func (self *router) AddRoute(route Route) error {
+func (self *Router) AddRoute(route Route) error {
 	self.mu.Lock()
 	defer self.mu.Unlock()
 
@@ -69,7 +67,7 @@ func (self *router) AddRoute(route Route) error {
 	return nil
 }
 
-func (self *router) FindRoute(method int, path string) (Route, bool) {
+func (self *Router) FindRoute(method int, path string) (Route, bool) {
 	self.mu.RLock()
 	defer self.mu.RUnlock()
 
@@ -86,7 +84,7 @@ func (self *router) FindRoute(method int, path string) (Route, bool) {
 	return route, false
 }
 
-func (self *router) ServeHTTP(resWriter http.ResponseWriter, req *http.Request) {
+func (self *Router) ServeHTTP(resWriter http.ResponseWriter, req *http.Request) {
 	if v, ok := self.FindRoute(MethodMap[req.Method], req.URL.Path); ok {
 		v.Handler.ServeHTTP(resWriter, req)
 	} else {
