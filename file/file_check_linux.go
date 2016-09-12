@@ -21,8 +21,8 @@ func CheckFile(path string, file *os.File) error {
 
 	fileStat := fileInfo.Sys()
 
-	pathInode := reflect.ValueOf(pathFileStat).Elem().FieldByName("Ino").Field(0).Uint()
-	fileInode := reflect.ValueOf(fileStat).Elem().FieldByName("Ino").Field(0).Uint()
+	pathInode := reflect.ValueOf(pathFileStat).Elem().FieldByName("Ino").Uint()
+	fileInode := reflect.ValueOf(fileStat).Elem().FieldByName("Ino").Uint()
 
 	if pathInode != fileInode {
 		return errors.New("not the same file")

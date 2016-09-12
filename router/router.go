@@ -3,6 +3,7 @@ package router
 import (
 	"errors"
 	"net/http"
+	"strings"
 	"sync"
 )
 
@@ -37,16 +38,33 @@ type Route struct {
 }
 
 type Router struct {
-	mu     sync.RWMutex
-	routes map[string]map[int]Route
+	mu         sync.RWMutex
+	routes     map[string]map[int]Route
+	pathPrefix string
 }
 
-func NewRouter() *Router {
+func NewRouter(pathPrefix string) *Router {
 	return &Router{
-		routes: map[string]map[int]Route{},
+		routes:     map[string]map[int]Route{},
+		pathPrefix: pathPrefix,
 	}
 }
 
+func (self *Router) GetPathPrefix() string {
+	self.mu.RLock()
+	defer self.mu.RUnlock()
+
+	return self.pathPrefix
+}
+
+func (self *Router) SetPathPrefix(pathPrefix string) {
+	self.mu.Lock()
+	defer self.mu.Unlock()
+
+	self.pathPrefix = pathPrefix
+}
+
+//the route.Path does not include prefix
 func (self *Router) AddRoute(route Route) error {
 	self.mu.Lock()
 	defer self.mu.Unlock()
@@ -67,9 +85,12 @@ func (self *Router) AddRoute(route Route) error {
 	return nil
 }
 
+//the parameter path should include prefix
 func (self *Router) FindRoute(method int, path string) (Route, bool) {
 	self.mu.RLock()
 	defer self.mu.RUnlock()
+
+	path = strings.TrimPrefix(path, self.pathPrefix)
 
 	var route Route
 

@@ -3,19 +3,14 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/boringding/beekeeper/router"
+	"github.com/boringding/beekeeper"
 )
 
 type Foo struct {
 }
 
 func init() {
-	var foo Foo
-	router.DefaultRouter.AddRoute(router.Route{
-		Handler: &foo,
-		Method:  router.MethodPost,
-		Path:    "/foo/c/d",
-	})
+	beekeeper.AddRoute("/foo/c/d", "GET", &Foo{})
 }
 
 func (self *Foo) ServeHTTP(resWriter http.ResponseWriter, req *http.Request) {

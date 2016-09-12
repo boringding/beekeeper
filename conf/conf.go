@@ -12,8 +12,9 @@ import (
 )
 
 const (
-	CmdConfName  = "cmd"
-	UsageTagName = "usage"
+	CmdConfName     = "cmd"
+	UsageTagName    = "usage"
+	ConfFileMaxSize = 1024 * 1024
 )
 
 type Conf struct {
@@ -149,7 +150,7 @@ func (self *Conf) Parse() error {
 				continue
 			}
 
-			content := []byte{}
+			content := make([]byte, ConfFileMaxSize, ConfFileMaxSize)
 
 			_, err = file.Read(content)
 			if err != nil {

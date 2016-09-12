@@ -8,7 +8,7 @@ import (
 	"github.com/boringding/beekeeper/conf"
 	"github.com/boringding/beekeeper/grace"
 	"github.com/boringding/beekeeper/proc"
-	//_ "github.com/boringding/beekeeper/skeleton/handlers"
+	_ "github.com/boringding/beekeeper/skeleton/handlers"
 )
 
 type CmdConf struct {
@@ -26,7 +26,7 @@ type CmdConf struct {
 func main() {
 	err := proc.DumpSelfPid("./beekeeper.pid")
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("dump self pid failed")
 		return
 	}
 
@@ -40,13 +40,13 @@ func main() {
 
 	err = beekeeper.ParseConf()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("parse configure failed")
 		return
 	}
 
 	err = beekeeper.InitLog(frameworkConf.LogConf)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("initialize log failed")
 		return
 	}
 
@@ -58,13 +58,13 @@ func main() {
 		return
 	}
 
+	beekeeper.SetPathPrefix("/beekeeper")
+
 	beekeeper.LogInfo("server starting...")
 
 	err = srv.Serve(grace.SrvTypeFcgi, beekeeper.GetRouter())
 	if err != nil {
-		beekeeper.LogFatal("start serve failed")
+		beekeeper.LogInfo("server finished: %s", err.Error())
 		return
 	}
-
-	beekeeper.LogInfo("server finished")
 }

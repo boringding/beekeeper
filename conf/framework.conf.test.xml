@@ -4,7 +4,7 @@
 		<MaxFileCnt>3</MaxFileCnt>
 		<MaxFileSize>1024</MaxFileSize>
 		<FileNamePrefix>beekeeper</FileNamePrefix>
-		<Dir>../log</Dir>
+		<Dir>../log/</Dir>
 		<Lvl>ALL</Lvl>
 	</LogConf>
 	
