@@ -20,7 +20,14 @@ type SrvConf struct {
 	ShutdownTimeoutSeconds int
 }
 
+type MonConf struct {
+	Enabled bool
+	Host    string
+	Port    int
+}
+
 type FrameworkConf struct {
 	LogConf LogConf
 	SrvConf SrvConf
+	MonConf MonConf
 }

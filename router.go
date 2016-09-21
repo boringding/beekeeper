@@ -9,10 +9,14 @@ import (
 
 const MethodSeperator = ","
 
-var defaultRouter = router.NewRouter("")
+var defaultRouter = router.NewRouter()
 
-func GetPathPrefix() string {
-	return defaultRouter.GetPathPrefix()
+func InitRouter(pathPrefix string) error {
+	return defaultRouter.Init(pathPrefix)
+}
+
+func PathPrefix() string {
+	return defaultRouter.PathPrefix()
 }
 
 func SetPathPrefix(pathPrefix string) {

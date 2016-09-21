@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+
+	"github.com/boringding/beekeeper/mon"
 )
 
 const (
@@ -41,16 +43,31 @@ type Router struct {
 	mu         sync.RWMutex
 	routes     map[string]map[int]Route
 	pathPrefix string
+	metrics    *mon.Metrics
 }
 
-func NewRouter(pathPrefix string) *Router {
+func NewRouter() *Router {
 	return &Router{
 		routes:     map[string]map[int]Route{},
-		pathPrefix: pathPrefix,
+		pathPrefix: "",
+		metrics:    nil,
 	}
 }
 
-func (self *Router) GetPathPrefix() string {
+func (self *Router) Init(pathPrefix string) error {
+	self.pathPrefix = pathPrefix
+
+	err, metrics := mon.NewMetrics("TOTAL_REQ", int64(0))
+	if err != nil {
+		return err
+	}
+
+	self.metrics = metrics
+
+	return nil
+}
+
+func (self *Router) PathPrefix() string {
 	self.mu.RLock()
 	defer self.mu.RUnlock()
 
@@ -106,6 +123,8 @@ func (self *Router) FindRoute(method int, path string) (Route, bool) {
 }
 
 func (self *Router) ServeHTTP(resWriter http.ResponseWriter, req *http.Request) {
+	self.metrics.Add(int64(1))
+
 	if v, ok := self.FindRoute(MethodMap[req.Method], req.URL.Path); ok {
 		v.Handler.ServeHTTP(resWriter, req)
 	} else {

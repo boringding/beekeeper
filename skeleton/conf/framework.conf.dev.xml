@@ -19,4 +19,10 @@
 		<MaxHeaderBytes>1000</MaxHeaderBytes>
 		<ShutdownTimeoutSeconds>30</ShutdownTimeoutSeconds>
 	</SrvConf>
+	
+	<MonConf>
+		<Enabled>true</Enabled>
+		<Host>127.0.0.1</Host>
+		<Port>8901</Port>
+	</MonConf>
 </FrameworkConf>

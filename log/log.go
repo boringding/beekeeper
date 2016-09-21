@@ -60,7 +60,7 @@ func (self *RotateLog) Init(conf conf.LogConf) error {
 	return nil
 }
 
-func (self *RotateLog) GetLvl() int {
+func (self *RotateLog) Lvl() int {
 	self.mu.RLock()
 	defer self.mu.RUnlock()
 

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/boringding/beekeeper"
 	"github.com/boringding/beekeeper/conf"
@@ -11,60 +12,59 @@ import (
 	_ "github.com/boringding/beekeeper/skeleton/handlers"
 )
 
-type CmdConf struct {
-	A uint    `usage:"parameter a"`
-	B uint32  `usage:"parameter b"`
-	C string  `usage:"parameter c"`
-	D float64 `usage:"parameter d"`
-	E bool    `usage:"parameter e"`
-	F int64   `usage:"parameter f"`
-	G uint64  `usage:"parameter g"`
-	H int32   `usage:"parameter h"`
-	I int     `usage:"parameter i"`
-}
+var (
+	ENV      = "dev"
+	CONF_DIR = "../conf/"
+)
 
 func main() {
-	err := proc.DumpSelfPid("./beekeeper.pid")
+	err := proc.DumpSelfPid(fmt.Sprintf("%s.pid", os.Args[0]))
 	if err != nil {
-		fmt.Println("dump self pid failed")
+		fmt.Println("dump self pid failed: ", err)
 		return
 	}
 
-	beekeeper.InitConf(os.Args[1], "../conf/")
+	beekeeper.InitConf(ENV, CONF_DIR)
 
-	var cmdConf CmdConf
 	var frameworkConf conf.FrameworkConf
 
-	beekeeper.AddCmdConfItem(&cmdConf)
 	beekeeper.AddConfItem("framework", &frameworkConf)
 
 	err = beekeeper.ParseConf()
 	if err != nil {
-		fmt.Println("parse configure failed")
+		fmt.Println("parse configure failed: ", err)
 		return
 	}
 
 	err = beekeeper.InitLog(frameworkConf.LogConf)
 	if err != nil {
-		fmt.Println("initialize log failed")
+		fmt.Println("initialize log failed: ", err)
 		return
 	}
-
-	beekeeper.LogInfo("log init finished")
 
 	srv, err := grace.NewGracefulSrv(frameworkConf.SrvConf)
 	if err != nil {
-		beekeeper.LogFatal("create graceful server failed")
+		beekeeper.LogFatal("create graceful server failed: %v", err)
 		return
 	}
 
-	beekeeper.SetPathPrefix("/beekeeper")
+	err = beekeeper.InitRouter("/" + filepath.Base(os.Args[0]))
+	if err != nil {
+		beekeeper.LogFatal("initialize router failed: %v", err)
+		return
+	}
+
+	err = beekeeper.InitMonitor(frameworkConf.MonConf)
+	if err != nil {
+		beekeeper.LogFatal("initialize monitor failed: %v", err)
+		return
+	}
 
 	beekeeper.LogInfo("server starting...")
 
 	err = srv.Serve(grace.SrvTypeFcgi, beekeeper.GetRouter())
 	if err != nil {
-		beekeeper.LogInfo("server finished: %s", err.Error())
+		beekeeper.LogInfo("server finished: %v", err)
 		return
 	}
 }

@@ -27,8 +27,8 @@ type Conf struct {
 func NewConf() *Conf {
 	return &Conf{
 		items: map[string]interface{}{},
-		env:   "dev",
-		dir:   "../conf/",
+		env:   "",
+		dir:   "",
 	}
 }
 
@@ -114,11 +114,12 @@ func (self *Conf) Parse() error {
 						strings.ToLower(reflectType.Field(i).Name),
 						false,
 						reflectType.Field(i).Tag.Get(UsageTagName)))
+				default:
+					vals = append(vals, nil)
 				}
 			}
 
-			//parsing from the 2nd parameter, os.Args[1] is used for environment
-			err = flagSet.Parse(os.Args[2:])
+			err = flagSet.Parse(os.Args[1:])
 			if err != nil {
 				continue
 			}
@@ -150,7 +151,7 @@ func (self *Conf) Parse() error {
 				continue
 			}
 
-			content := make([]byte, ConfFileMaxSize, ConfFileMaxSize)
+			content := make([]byte, ConfFileMaxSize)
 
 			_, err = file.Read(content)
 			if err != nil {

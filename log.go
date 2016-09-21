@@ -13,8 +13,8 @@ func InitLog(conf conf.LogConf) error {
 	return defaultLog.Init(conf)
 }
 
-func GetLogLvl() int {
-	return defaultLog.GetLvl()
+func LogLvl() int {
+	return defaultLog.Lvl()
 }
 
 func SetLogLvl(lvl int) {
