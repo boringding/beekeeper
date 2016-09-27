@@ -1,7 +1,6 @@
 package beekeeper
 
 import (
-	"net/http"
 	"strings"
 
 	"github.com/boringding/beekeeper/router"
@@ -23,7 +22,7 @@ func SetPathPrefix(pathPrefix string) {
 	defaultRouter.SetPathPrefix(pathPrefix)
 }
 
-func AddRoute(path string, method string, handler http.Handler) error {
+func AddRoute(path string, method string, timeoutSeconds int, handle router.HandleFunc) error {
 	methods := strings.Split(method, MethodSeperator)
 
 	m := 0
@@ -34,9 +33,10 @@ func AddRoute(path string, method string, handler http.Handler) error {
 	}
 
 	return defaultRouter.AddRoute(router.Route{
-		Handler: handler,
-		Method:  m,
-		Path:    path,
+		Handle:         handle,
+		Method:         m,
+		Path:           path,
+		TimeoutSeconds: timeoutSeconds,
 	})
 }
 

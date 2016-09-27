@@ -1,10 +1,12 @@
 package router
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/boringding/beekeeper/mon"
 )
@@ -33,36 +35,43 @@ var MethodMap = map[string]int{
 	http.MethodTrace:   MethodTrace,
 }
 
+type HandleFunc func(ctx context.Context, resWriter http.ResponseWriter, req *http.Request)
+
 type Route struct {
-	http.Handler
-	Method int
-	Path   string
+	Handle         HandleFunc
+	Method         int
+	Path           string
+	TimeoutSeconds int
 }
 
 type Router struct {
 	mu         sync.RWMutex
 	routes     map[string]map[int]Route
 	pathPrefix string
-	metrics    *mon.Metrics
+	totalReq   *mon.Metrics
+	totalTime  *mon.Metrics
 }
 
 func NewRouter() *Router {
 	return &Router{
 		routes:     map[string]map[int]Route{},
 		pathPrefix: "",
-		metrics:    nil,
+		totalReq:   nil,
+		totalTime:  nil,
 	}
 }
 
 func (self *Router) Init(pathPrefix string) error {
 	self.pathPrefix = pathPrefix
 
-	err, metrics := mon.NewMetrics("TOTAL_REQ", int64(0))
+	err, totalReq := mon.NewMetrics("TOTAL_REQ", int64(0))
+	err, totalTime := mon.NewMetrics("TOTAL_TIME", int64(0))
 	if err != nil {
 		return err
 	}
 
-	self.metrics = metrics
+	self.totalReq = totalReq
+	self.totalTime = totalTime
 
 	return nil
 }
@@ -123,10 +132,26 @@ func (self *Router) FindRoute(method int, path string) (Route, bool) {
 }
 
 func (self *Router) ServeHTTP(resWriter http.ResponseWriter, req *http.Request) {
-	self.metrics.Add(int64(1))
+	self.totalReq.Add(int64(1))
 
 	if v, ok := self.FindRoute(MethodMap[req.Method], req.URL.Path); ok {
-		v.Handler.ServeHTTP(resWriter, req)
+		var ctx context.Context
+		var cancel context.CancelFunc
+
+		if v.TimeoutSeconds > 0 {
+			ctx, cancel = context.WithTimeout(req.Context(), time.Duration(v.TimeoutSeconds)*time.Second)
+		} else {
+			ctx, cancel = context.WithCancel(req.Context())
+		}
+
+		defer cancel()
+
+		start := time.Now()
+		v.Handle(ctx, resWriter, req)
+		duration := time.Since(start)
+
+		self.totalTime.Add(int64(duration / time.Millisecond))
+
 	} else {
 		http.NotFound(resWriter, req)
 	}

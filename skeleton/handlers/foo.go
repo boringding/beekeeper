@@ -1,19 +1,17 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/boringding/beekeeper"
 )
 
-type Foo struct {
-}
-
 func init() {
-	beekeeper.AddRoute("/foo/c/d", "GET", &Foo{})
+	beekeeper.AddRoute("/foo/c/d", "GET", 0, Foo)
 }
 
-func (self *Foo) ServeHTTP(resWriter http.ResponseWriter, req *http.Request) {
+func Foo(ctx context.Context, resWriter http.ResponseWriter, req *http.Request) {
 	str := req.URL.Path
 	resWriter.Write([]byte(str))
 }
