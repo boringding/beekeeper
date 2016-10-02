@@ -14,7 +14,7 @@ type Metrics struct {
 func NewMetrics(name string, initVal int64) (err error, m *Metrics) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = errors.New(fmt.Sprintf("panic: %v", r))
+			err = fmt.Errorf("panic: %v", r)
 			m = nil
 		}
 	}()
