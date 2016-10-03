@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"reflect"
+	"strconv"
 )
 
 const ParamTagName = "param"
@@ -26,7 +27,46 @@ func ParseQueryStr(queryStr string, v interface{}) (err error) {
 	for i := 0; i < reflectVal.NumField(); i++ {
 		tagVal := reflectType.Field(i).Tag.Get(ParamTagName)
 		val := vals.Get(tagVal)
-		reflectVal.Field(i).SetString(val)
+
+		switch reflectVal.Field(i).Type().Name() {
+		case "uint", "uint32":
+			uval, err := strconv.ParseUint(val, 10, 32)
+			if err == nil {
+				reflectVal.Field(i).SetUint(uval)
+			}
+		case "uint64":
+			uval, err := strconv.ParseUint(val, 10, 64)
+			if err == nil {
+				reflectVal.Field(i).SetUint(uval)
+			}
+		case "int", "int32":
+			ival, err := strconv.ParseInt(val, 10, 32)
+			if err == nil {
+				reflectVal.Field(i).SetInt(ival)
+			}
+		case "int64":
+			ival, err := strconv.ParseInt(val, 10, 64)
+			if err == nil {
+				reflectVal.Field(i).SetInt(ival)
+			}
+		case "float32":
+			fval, err := strconv.ParseFloat(val, 32)
+			if err == nil {
+				reflectVal.Field(i).SetFloat(fval)
+			}
+		case "float64":
+			fval, err := strconv.ParseFloat(val, 64)
+			if err == nil {
+				reflectVal.Field(i).SetFloat(fval)
+			}
+		case "string":
+			reflectVal.Field(i).SetString(val)
+		case "bool":
+			bval, err := strconv.ParseBool(val)
+			if err == nil {
+				reflectVal.Field(i).SetBool(bval)
+			}
+		}
 	}
 
 	return
