@@ -1,3 +1,6 @@
+//Example command line configure struct definition
+//and registration.
+
 package main
 
 import (

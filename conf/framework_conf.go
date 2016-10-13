@@ -1,3 +1,7 @@
+//Basic configure struct definition of the framework.
+//The corresponding configure files are:
+//your_project_dir/conf/framework.conf.environment_name.xml.
+
 package conf
 
 type LogConf struct {

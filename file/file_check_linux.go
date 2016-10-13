@@ -1,3 +1,7 @@
+//Check whether the file represented by the path
+//is the same with that represented by the os.File.
+//In linux it is implemented by comparing the inode.
+
 package file
 
 import (

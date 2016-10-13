@@ -1,3 +1,5 @@
+//Monitor interface.
+
 package beekeeper
 
 import (
@@ -9,4 +11,8 @@ var defaultMonitor = mon.NewMonitor()
 
 func InitMonitor(conf conf.MonConf) error {
 	return defaultMonitor.Init(conf)
+}
+
+func CloseMonitor() error {
+	return defaultMonitor.Close()
 }

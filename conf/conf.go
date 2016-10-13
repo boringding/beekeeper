@@ -1,3 +1,6 @@
+//Unified configure load and parse
+//including command line parameters and xml configure files.
+
 package conf
 
 import (
@@ -12,16 +15,19 @@ import (
 )
 
 const (
-	CmdConfName     = "cmd"
-	UsageTagName    = "usage"
+	CmdConfName  = "cmd"
+	UsageTagName = "usage"
+	//Default max size of configure file in bytes.
 	ConfFileMaxSize = 1024 * 1024
 )
 
 type Conf struct {
 	mu    sync.RWMutex
 	items map[string]interface{}
-	env   string
-	dir   string
+	//The environment name used in the name suffix of configure files.
+	env string
+	//The directory of configure files.
+	dir string
 }
 
 func NewConf() *Conf {
@@ -68,10 +74,13 @@ func (self *Conf) Parse() error {
 	self.mu.Lock()
 	defer self.mu.Unlock()
 
+	//Do NOT use default flag.CommandLine because it will cause exit on error.
+	//See flag.go.
 	flagSet := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 	var err error
 
 	for k, v := range self.items {
+		//Handle command line parameters.
 		if k == CmdConfName {
 			reflectVal := reflect.ValueOf(v).Elem()
 			reflectType := reflectVal.Type()
@@ -144,7 +153,7 @@ func (self *Conf) Parse() error {
 					reflectVal.Field(j).SetBool(*vals[j].(*bool))
 				}
 			}
-		} else {
+		} else { //Handle xml configure files.
 			path := fmt.Sprintf("%s%s.conf.%s.xml", self.dir, k, self.env)
 			file, err := os.OpenFile(path, os.O_RDONLY, 0666)
 			if err != nil {

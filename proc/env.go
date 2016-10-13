@@ -1,3 +1,5 @@
+//Environment variable operations.
+
 package proc
 
 import (

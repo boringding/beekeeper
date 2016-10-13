@@ -1,3 +1,6 @@
+//Type gracefulListener inherits net.Listener and
+//overrides Accept and Close method.
+
 package grace
 
 import (
@@ -22,12 +25,14 @@ func (self *gracefulListener) init() error {
 	fdStr := proc.GetEnv(self.name)
 	var err error
 
+	//If the environment variable is not set
+	//create the listener with the address directly,
 	if len(fdStr) <= 0 {
 		self.Listener, err = net.Listen("tcp", self.addr)
 		if err != nil {
 			return err
 		}
-	} else {
+	} else { //or create the listener with the file descriptor set in the environment variable.
 		fd, err := strconv.Atoi(fdStr)
 		if err != nil {
 			return err
@@ -57,6 +62,8 @@ func (self *gracefulListener) Accept() (net.Conn, error) {
 		srv:  self.srv,
 	}
 
+	//After accept a connection successfully
+	//increase the server's sync.WaitGroup.
 	self.srv.waitGroup.Add(1)
 
 	return &gracefulConn, nil

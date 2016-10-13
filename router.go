@@ -1,3 +1,5 @@
+//Router interface.
+
 package beekeeper
 
 import (

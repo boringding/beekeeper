@@ -1,3 +1,5 @@
+//Utilities.
+
 package beekeeper
 
 import (
@@ -9,6 +11,7 @@ import (
 
 const ParamTagName = "param"
 
+//Parse a query string like "a=1&b=2&c=str" into an object.
 func ParseQueryStr(queryStr string, v interface{}) (err error) {
 	vals, err := url.ParseQuery(queryStr)
 	if err != nil {

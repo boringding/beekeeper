@@ -1,3 +1,6 @@
+//Type Metrics is just a wrapper of expvar.Int
+//in stardard library.
+
 package mon
 
 import (

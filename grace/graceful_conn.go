@@ -1,3 +1,5 @@
+//Type gracefulConn inherits net.Conn and overrides Close method
+
 package grace
 
 import (
@@ -11,6 +13,8 @@ type gracefulConn struct {
 
 func (self *gracefulConn) Close() error {
 	err := self.Conn.Close()
+	//After close the connection successfully
+	//reduce the server's sync.WaitGroup.
 	if err == nil {
 		self.srv.waitGroup.Done()
 	}

@@ -1,3 +1,7 @@
+//Type RotateLog implements a log facility that limits
+//log file size and count.
+//It is based on log package in standard library.
+
 package log
 
 import (
@@ -82,7 +86,7 @@ func (self *RotateLog) SetWriter(writer io.Writer) {
 	self.logger.SetOutput(writer)
 }
 
-//call this function with a callDepth=2 in your code
+//Call this function with a callDepth=2.
 func (self *RotateLog) Log(lvl int, callDepth int, format string, v ...interface{}) error {
 	if lvl < self.lvl {
 		return nil

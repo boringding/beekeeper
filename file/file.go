@@ -1,3 +1,5 @@
+//Basic file operations.
+
 package file
 
 import (

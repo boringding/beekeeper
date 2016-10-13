@@ -1,3 +1,6 @@
+//Type RotateWriter implements the management of
+//log files.
+
 package log
 
 import (
@@ -62,6 +65,8 @@ func (self *RotateWriter) openFile() error {
 		return err
 	}
 
+	//The new-opened file may not be an empty file
+	//so update curFileSize.
 	if fileSize < 0 {
 		self.curFileSize = 0
 	} else {
@@ -71,6 +76,8 @@ func (self *RotateWriter) openFile() error {
 	return nil
 }
 
+//Try to find the max sequence number in all file names
+//that have a prefix of fileName.
 func (self *RotateWriter) getMaxFileNo(fileName string) (int, error) {
 	maxFileNo := 0
 	fileNameLen := len(fileName)
@@ -139,6 +146,8 @@ func (self *RotateWriter) updateCurFileNo() error {
 	return err
 }
 
+//Try to close the old file and shift to a new file
+//when the size of old file exceeds maxFileSize.
 func (self *RotateWriter) shiftFile() error {
 	fd := int(self.file.Fd())
 
@@ -177,7 +186,6 @@ func (self *RotateWriter) shiftFile() error {
 	src := path
 	dst := fmt.Sprintf("%s.%d", src, self.curFileNo)
 
-	//not care about error
 	file.RenameFile(src, dst)
 
 	rm := fmt.Sprintf("%s.%d", src, self.curFileNo-self.maxFileCnt)
@@ -256,6 +264,9 @@ func (self *RotateWriter) Init() error {
 	return self.openFile()
 }
 
+//Type RotateWriter implements Write method
+//so it is an implementation of io.Writer.
+//See io.go.
 func (self *RotateWriter) Write(p []byte) (n int, err error) {
 	self.mu.Lock()
 	defer self.mu.Unlock()

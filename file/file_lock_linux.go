@@ -1,3 +1,6 @@
+//Lock the file represented by the file descriptor.
+//In linux it is implemented by system call.
+
 package file
 
 import (

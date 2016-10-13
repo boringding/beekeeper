@@ -1,3 +1,6 @@
+//Type Router distributes requests according to
+//their path.
+
 package router
 
 import (
@@ -48,8 +51,10 @@ type Router struct {
 	mu         sync.RWMutex
 	routes     map[string]map[int]Route
 	pathPrefix string
-	totalReq   *mon.Metrics
-	totalTime  *mon.Metrics
+	//The number of requests received by the Router.
+	totalReq *mon.Metrics
+	//Total elapsed time on handling requests in millisecond.
+	totalTime *mon.Metrics
 }
 
 func NewRouter() *Router {
@@ -90,7 +95,7 @@ func (self *Router) SetPathPrefix(pathPrefix string) {
 	self.pathPrefix = pathPrefix
 }
 
-//the route.Path does not include prefix
+//The route.Path must NOT include prefix.
 func (self *Router) AddRoute(route Route) error {
 	self.mu.Lock()
 	defer self.mu.Unlock()
@@ -111,7 +116,7 @@ func (self *Router) AddRoute(route Route) error {
 	return nil
 }
 
-//the parameter path should include prefix
+//The parameter path should include prefix.
 func (self *Router) FindRoute(method int, path string) (Route, bool) {
 	self.mu.RLock()
 	defer self.mu.RUnlock()
@@ -131,6 +136,9 @@ func (self *Router) FindRoute(method int, path string) (Route, bool) {
 	return route, false
 }
 
+//Type Router implements ServeHTTP method
+//so it is an implementation of http.Handler.
+//See server.go.
 func (self *Router) ServeHTTP(resWriter http.ResponseWriter, req *http.Request) {
 	self.totalReq.Add(int64(1))
 

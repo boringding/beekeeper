@@ -1,3 +1,5 @@
+//Configure interface.
+
 package beekeeper
 
 import (

@@ -1,3 +1,5 @@
+//Program entrance.
+
 package main
 
 import (
@@ -13,11 +15,15 @@ import (
 )
 
 var (
+	//Environment name.
+	//It is recommended to change it through build tags.
+	//Example: go build -ldflags "-X main.ENV 'test'".
 	ENV      = "dev"
 	CONF_DIR = "../conf/"
 )
 
 func main() {
+	//Dump pid file and load configures.
 	err := proc.DumpSelfPid(fmt.Sprintf("%s.pid", os.Args[0]))
 	if err != nil {
 		fmt.Println("dump self pid failed: ", err)
@@ -36,24 +42,28 @@ func main() {
 		return
 	}
 
+	//Initialize log facility.
 	err = beekeeper.InitLog(frameworkConf.LogConf)
 	if err != nil {
 		fmt.Println("initialize log failed: ", err)
 		return
 	}
 
+	//Create and initialize server.
 	srv, err := grace.NewGracefulSrv(frameworkConf.SrvConf)
 	if err != nil {
 		beekeeper.LogFatal("create graceful server failed: %v", err)
 		return
 	}
 
+	//Initialize router.
 	err = beekeeper.InitRouter("/" + filepath.Base(os.Args[0]))
 	if err != nil {
 		beekeeper.LogFatal("initialize router failed: %v", err)
 		return
 	}
 
+	//Initialize monitor.
 	err = beekeeper.InitMonitor(frameworkConf.MonConf)
 	if err != nil {
 		beekeeper.LogFatal("initialize monitor failed: %v", err)
@@ -62,8 +72,10 @@ func main() {
 
 	beekeeper.LogInfo("server starting...")
 
+	//Start server.
 	err = srv.Serve(grace.SrvTypeFcgi, beekeeper.GetRouter())
 	if err != nil {
+		beekeeper.CloseMonitor()
 		beekeeper.LogInfo("server finished: %v", err)
 		return
 	}

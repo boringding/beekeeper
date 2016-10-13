@@ -1,3 +1,7 @@
+//Type GracefulSrv inherits http.Server.
+//It implements a server which can restart smoothly
+//without interrupting the service.
+
 package grace
 
 import (
@@ -16,13 +20,17 @@ import (
 
 type GracefulSrv struct {
 	http.Server
-	listener               *gracefulListener
-	waitGroup              sync.WaitGroup
-	srvType                int
+	listener  *gracefulListener
+	waitGroup sync.WaitGroup
+	srvType   int
+	//The longest time for the old server to wait for all
+	//established connections to close.
 	shutdownTimeoutSeconds int
 }
 
 const (
+	//The environment variable name which indicates
+	//whether the process is a child process.
 	BeekeeperChildEnv = "BEEKEEPER_CHILD"
 	SrvTypeHttp       = iota
 	SrvTypeFcgi
@@ -32,8 +40,11 @@ var (
 	mu           sync.Mutex
 	GracefulSrvs = map[string]*GracefulSrv{}
 	sigChan      chan os.Signal
-	isForked     bool
-	isClosed     bool
+	//The flag which indicates whether the process has forked
+	//a new process to accept connections(restart).
+	isForked bool
+	//The flag which indicates whether the process is about to close.
+	isClosed bool
 )
 
 func init() {
@@ -41,6 +52,8 @@ func init() {
 	isForked = false
 	isClosed = false
 
+	//If this is a new-forked child process
+	//it should tell its parent process to exit.
 	if len(proc.GetEnv(BeekeeperChildEnv)) > 0 {
 		proc.TerminateProc(proc.GetParentPid())
 	}
@@ -91,6 +104,9 @@ func (self *GracefulSrv) init(conf conf.SrvConf) error {
 func (self *GracefulSrv) serveHttp(handler http.Handler) error {
 	self.Server.Handler = handler
 	err := self.Server.Serve(self.listener)
+	//When the listener is closed and the server jumps out of
+	//the loop it should wait the established connections to
+	//finish their process.
 	self.waitGroup.Wait()
 
 	return err
@@ -121,6 +137,8 @@ func (self *GracefulSrv) shutdown() error {
 
 	switch self.srvType {
 	case SrvTypeHttp:
+		//Before closing the listener of a http server
+		//keep-alive option should be disabled.
 		self.SetKeepAlivesEnabled(false)
 		return self.listener.Close()
 	case SrvTypeFcgi:
@@ -140,7 +158,11 @@ func (self *GracefulSrv) stopConns() {
 	time.Sleep(time.Duration(self.shutdownTimeoutSeconds) * time.Second)
 
 	for {
+		//When there is no go routines to wait calling
+		//sync.WaitGroup.Done method will cause a panic.
 		self.waitGroup.Done()
+		//Yields the processor so that the server routine
+		//may have a chance to return as soon as possible.
 		runtime.Gosched()
 	}
 

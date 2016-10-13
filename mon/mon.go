@@ -1,3 +1,8 @@
+//Type Monitor provides a way to create, start and stop
+//http.DefaultServeMux which gives access to process
+//runtime statistics (see expvar.go)
+//and metrics.
+
 package mon
 
 import (
@@ -9,8 +14,9 @@ import (
 )
 
 type Monitor struct {
-	host string
-	port int
+	host     string
+	port     int
+	listener net.Listener
 }
 
 func NewMonitor() *Monitor {
@@ -20,22 +26,26 @@ func NewMonitor() *Monitor {
 	}
 }
 
-func (self *Monitor) Init(conf conf.MonConf) error {
+func (self *Monitor) Init(conf conf.MonConf) (err error) {
 	if conf.Enabled == false {
-		return nil
+		return
 	}
 
 	self.host = conf.Host
 	self.port = conf.Port
 
-	listener, err := net.Listen("tcp", fmt.Sprintf("%s:%d", self.host, self.port))
+	self.listener, err = net.Listen("tcp", fmt.Sprintf("%s:%d", self.host, self.port))
 	if err != nil {
-		return err
+		return
 	}
 
 	go func() {
-		http.Serve(listener, nil)
+		http.Serve(self.listener, nil)
 	}()
 
-	return nil
+	return
+}
+
+func (self *Monitor) Close() error {
+	return self.listener.Close()
 }

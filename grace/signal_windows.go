@@ -1,3 +1,7 @@
+//Handle os signals in windows
+//Signal syscall.SIGHUP: restart servers smoothly
+//Signal syscall.SIGTERM: stop servers and exit
+
 package grace
 
 import (

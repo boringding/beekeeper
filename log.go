@@ -1,3 +1,5 @@
+//Log interface.
+
 package beekeeper
 
 import (

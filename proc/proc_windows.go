@@ -1,3 +1,5 @@
+//Terminate a process in windows using external command.
+
 package proc
 
 import (

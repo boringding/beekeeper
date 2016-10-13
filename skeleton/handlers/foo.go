@@ -1,3 +1,5 @@
+//Example handler.
+
 package handlers
 
 import (

@@ -1,3 +1,5 @@
+//Terminate a process in linux using system call.
+
 package proc
 
 import (

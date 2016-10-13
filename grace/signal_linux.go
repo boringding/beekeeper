@@ -1,3 +1,7 @@
+//Handle os signals in linux.
+//Signal syscall.SIGUSR1: restart servers smoothly.
+//Signal syscall.SIGTERM: stop servers and exit.
+
 package grace
 
 import (
@@ -45,6 +49,8 @@ func sigusr1Handler() error {
 		}
 
 		files = append(files, file)
+		//The open file descriptor inherited by child process.
+		//See cmd.ExtraFiles.
 		envVal := 3 + i
 		envValStr := strconv.Itoa(envVal)
 		i++
