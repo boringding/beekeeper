@@ -33,11 +33,13 @@ go1.7及以上。
 
 在nginx配置中添加如下转发规则：
 
+```javascript
 location /your_program_name/ {
 	fastcgi_pass x.x.x.x:yyyy;
 	fastcgi_index index.cgi;
 	fastcgi_param SCRIPT_FILENAME fcgi$fastcgi_script_name;
 	include fastcgi_params;
 }
+```
 
 注意转发的ip地址和端口应当与配置文件中的ip地址和端口保持一致。
