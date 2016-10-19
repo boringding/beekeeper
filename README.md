@@ -4,7 +4,7 @@
 
 ##GO版本要求
 
-go1.7及以上
+go1.7及以上。
 
 ##主要模块
 
@@ -28,3 +28,16 @@ go1.7及以上
 在确保正确安装GO环境的前提下，运行beekeeper/create.bat（create.sh）脚本，在$GOPATH/src目录下生成目录。
 
 进入生成的目录，使用go build命令编译。
+
+##配置web服务器
+
+在nginx配置中添加如下转发规则：
+
+location /your_program_name/ {
+	fastcgi_pass x.x.x.x:yyyy;
+	fastcgi_index index.cgi;
+	fastcgi_param SCRIPT_FILENAME fcgi$fastcgi_script_name;
+	include fastcgi_params;
+}
+
+注意转发的ip地址和端口应当与配置文件中的ip地址和端口保持一致。
