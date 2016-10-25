@@ -18,22 +18,26 @@ go1.7及以上。
 	*  基于标准库log包实现的rotate日志模块。
 
 * mon
-	*  基于标准库expvar包实现的监控接口模块，可以将程序运行期间的一些统计变量通过http协议以统一的格式暴露给外部。
+	*  基于标准库expvar包实现的监控接口模块，可以将程序运行期间的一些统计变量（例如内存使用情况、请求数量以及请求耗时等）通过http协议以统一的json格式暴露给外部。
 
 * router
 	*  一个简单的请求路由模块，根据注册的路由信息将不同路径和方法的请求路由到相应的函数处理。
 
 ##如何创建自己的代码
 
-在确保正确安装GO环境的前提下，运行beekeeper/create.bat（create.sh）脚本，在$GOPATH/src目录下生成目录。
+在GO环境已经正确安装和配置的前提下：
 
-进入生成的目录，使用go build命令编译。
+1. 将beekeeper框架复制到$GOPATH/src目录下。
+
+2. 运行beekeeper/create.bat（create.sh）脚本，在$GOPATH/src目录下生成目录。
+
+3. 进入生成的目录，使用go build命令编译。
 
 ##配置web服务器
 
 在nginx配置中添加如下转发规则：
 
-```javascript
+```nginx
 location /your_program_name/ {
 	fastcgi_pass x.x.x.x:yyyy;
 	fastcgi_index index.cgi;

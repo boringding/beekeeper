@@ -15,6 +15,8 @@ func init() {
 
 func Foo(ctx context.Context, resWriter http.ResponseWriter, req *http.Request) {
 	beekeeper.LogInfo("handle foo request")
+	beekeeper.MetricsAdd("FOO_REQ", 1)
+
 	str := req.URL.Path
 	resWriter.Write([]byte(str))
 }
