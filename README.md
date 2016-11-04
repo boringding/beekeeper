@@ -1,41 +1,41 @@
-##����beekeeper
+##关于beekeeper
 
-һ��Go����ʵ�ֵ�������FCGI��ܡ�
+一个Go语言实现的轻量级FCGI框架。
 
-##Go�汾Ҫ��
+##Go版本要求
 
-go1.7�����ϡ�
+go1.7及以上。
 
-##��Ҫģ��
+##主要模块
 
 * conf
-	*  ͳһ�����ü���ģ�飬���Զ�ȡ�����в�����XML�����ļ�������Ϊ����
+	*  统一的配置加载模块，可以读取命令行参数与XML配置文件，解析为对象。
 	
 * grace
-	*  �ṩ���жϷ����ܣ������������ڼ䲻��Ͽ��������ӣ�ֱ����Щ���ӳ�ʱ��
+	*  提供不中断服务功能，在重启进程期间不会断开已有连接，直到这些连接超时。
 	
 * log
-	*  ���ڱ�׼��log��ʵ�ֵ�rotate��־ģ�顣
+	*  基于标准库log包实现的rotate日志模块。
 
 * mon
-	*  ���ڱ�׼��expvar��ʵ�ֵļ�ؽӿ�ģ�飬���Խ����������ڼ��һЩͳ�Ʊ����������ڴ�ʹ����������������Լ������ʱ�ȣ�ͨ��HTTPЭ����ͳһ��JSON��ʽ��¶���ⲿ��
+	*  基于标准库expvar包实现的监控接口模块，可以将程序运行期间的一些统计变量（例如内存使用情况、请求数量以及请求耗时等）通过HTTP协议以统一的JSON格式暴露给外部。
 
 * router
-	*  һ���򵥵�����·��ģ�飬����ע���·����Ϣ����ͬ·���ͷ���������·�ɵ���Ӧ�ĺ���������
+	*  一个简单的请求路由模块，根据注册的路由信息将不同路径和方法的请求路由到相应的函数处理。
 
-##��δ����Լ��Ĵ���
+##如何创建自己的代码
 
-��Go�����Ѿ���ȷ��װ�����õ�ǰ���£�
+在Go环境已经正确安装和配置的前提下：
 
-1. ��beekeeper��ܸ��Ƶ�$GOPATH/srcĿ¼�¡�
+1. 将beekeeper框架复制到$GOPATH/src目录下。
 
-2. ����beekeeper/create.bat��create.sh���ű�����$GOPATH/srcĿ¼������Ŀ¼��
+2. 运行beekeeper/create.bat（create.sh）脚本，在$GOPATH/src目录下生成目录。
 
-3. �������ɵ�Ŀ¼��ʹ��go build������롣
+3. 进入生成的目录，使用go build命令编译。
 
-##����web������
+##配置web服务器
 
-��nginx��������������ת������
+在nginx配置中添加如下转发规则：
 
 ```nginx
 location /your_program_name/ {
@@ -46,4 +46,4 @@ location /your_program_name/ {
 }
 ```
 
-ע��ת����IP��ַ�Ͷ˿�Ӧ���������ļ��е�IP��ַ�Ͷ˿ڱ���һ�¡�
+注意转发的IP地址和端口应当与配置文件中的IP地址和端口保持一致。

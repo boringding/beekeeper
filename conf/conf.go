@@ -22,7 +22,8 @@ const (
 )
 
 type Conf struct {
-	mu    sync.RWMutex
+	mu sync.RWMutex
+	//The value of map items should be a pointer to an object.
 	items map[string]interface{}
 	//The environment name used in the name suffix of configure files.
 	env string
