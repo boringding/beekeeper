@@ -1,3 +1,5 @@
+//Internal representation of smtp mail message.
+
 package mailmsg
 
 import (

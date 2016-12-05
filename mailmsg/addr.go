@@ -1,3 +1,5 @@
+//Helper functions for mail.Address.
+
 package mailmsg
 
 import (
@@ -20,6 +22,7 @@ func checkAddrs(addrs ...mail.Address) error {
 	return nil
 }
 
+//Convert mail.Address to mime format string.
 func stringAddrs(addrs ...mail.Address) string {
 	addrStrs := make([]string, 0, 10)
 

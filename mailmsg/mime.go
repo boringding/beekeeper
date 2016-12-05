@@ -1,3 +1,5 @@
+//Helper functions for mime handling.
+
 package mailmsg
 
 import (

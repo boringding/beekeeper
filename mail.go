@@ -26,6 +26,7 @@ const (
 	SmtpPort = 25
 )
 
+//Implement smtp.Auth interface in order to provide a login method authentication.
 type loginAuth struct {
 	userName string
 	pwd      string
@@ -73,12 +74,19 @@ func (self *Mail) AddReceiver(addr string, kind int) {
 		mailAddr.Name = addrSlice[0]
 	}
 
+	//A bcc receiver does NOT need to appear in the smtp message.
 	switch kind {
 	case AddrTo:
 		self.msg.Header.To = append(self.msg.Header.To, mailAddr)
 	case AddrCc:
 		self.msg.Header.Cc = append(self.msg.Header.Cc, mailAddr)
 	}
+}
+
+func (self *Mail) ClearReceiver() {
+	self.to = make([]string, 0, 1)
+	self.msg.Header.To = make([]mail.Address, 0, 1)
+	self.msg.Header.Cc = make([]mail.Address, 0, 1)
 }
 
 func (self *Mail) SetSubject(subject string) {
