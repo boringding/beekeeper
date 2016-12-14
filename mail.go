@@ -140,19 +140,12 @@ func (self *Mail) SetHtmlContent(content string) error {
 	return nil
 }
 
-func (self *Mail) AddEmbeddedAttachment(path string) error {
-	name := filepath.Base(path)
-
+func (self *Mail) AddEmbeddedAttachmentBin(name string, data []byte) error {
 	embeddedAttachment := mailmsg.EmbeddedAttachment{Name: name, ContentType: mailmsg.ApplicationOctetStream, ContentId: name, ContentTransferEncoding: mailmsg.EncodingBase64}
-
-	data, err := ioutil.ReadFile(path)
-	if err != nil {
-		return err
-	}
 
 	writer := &bytes.Buffer{}
 	encoder := base64.NewEncoder(base64.StdEncoding, writer)
-	_, err = encoder.Write(data)
+	_, err := encoder.Write(data)
 	if err != nil {
 		return err
 	}
@@ -168,19 +161,23 @@ func (self *Mail) AddEmbeddedAttachment(path string) error {
 	return nil
 }
 
-func (self *Mail) AddAttachment(path string) error {
+func (self *Mail) AddEmbeddedAttachment(path string) error {
 	name := filepath.Base(path)
-
-	attachment := mailmsg.Attachment{Name: name, ContentType: mailmsg.ApplicationOctetStream, FileName: name, ContentTransferEncoding: mailmsg.EncodingBase64}
 
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return err
 	}
 
+	return self.AddEmbeddedAttachmentBin(name, data)
+}
+
+func (self *Mail) AddAttachmentBin(name string, data []byte) error {
+	attachment := mailmsg.Attachment{Name: name, ContentType: mailmsg.ApplicationOctetStream, FileName: name, ContentTransferEncoding: mailmsg.EncodingBase64}
+
 	writer := &bytes.Buffer{}
 	encoder := base64.NewEncoder(base64.StdEncoding, writer)
-	_, err = encoder.Write(data)
+	_, err := encoder.Write(data)
 	if err != nil {
 		return err
 	}
@@ -194,6 +191,17 @@ func (self *Mail) AddAttachment(path string) error {
 
 	self.msg.Attachments = append(self.msg.Attachments, attachment)
 	return nil
+}
+
+func (self *Mail) AddAttachment(path string) error {
+	name := filepath.Base(path)
+
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	return self.AddAttachmentBin(name, data)
 }
 
 func LoginAuth(userName string, pwd string) smtp.Auth {
