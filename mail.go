@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/boringding/beekeeper/mailmsg"
+	"github.com/boringding/beekeeper/traffic"
 )
 
 const (
@@ -237,4 +238,15 @@ func SendMail(host string, userName string, pwd string, mail *Mail) error {
 	}
 
 	return nil
+}
+
+func SendMailWithConcurrentLmt(host string, userName string, pwd string, mail *Mail, tokenBucket *traffic.TokenBucket) error {
+	err := tokenBucket.Get()
+	if err != nil {
+		return err
+	}
+
+	defer tokenBucket.Put()
+
+	return SendMail(host, userName, pwd, mail)
 }
